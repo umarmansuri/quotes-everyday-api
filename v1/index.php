@@ -20,15 +20,17 @@ $app->get('/test/:name', function ($name) {
     echo "Hello, $name";
 });
 
+
 $app->post('/register-user', function() use ($app) {
   // check for required params
-  verifyRequiredParams(array('name', 'email'));
+  verifyRequiredParams(array('name', 'email', 'gcm_reg_id'));
   $response = array();
   $params = array();
   $params['notify_app_status'] = 1;
   $params['send_email_status'] = 0;
   $params['name'] = $app->request->post('name');
   $params['email'] = $app->request->post('email');
+  $params['gcm_reg_id'] = $app->request->post('gcm_reg_id');
   $params['password'] = ($app->request->post('password'))?$app->request->post('password'):'123';
 
   validateEmail($params['email']);

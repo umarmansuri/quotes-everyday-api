@@ -16,6 +16,7 @@ class DbHandler {
 
       $name = $params['name'];
       $email = $params['email'];
+      $gcm_reg_id = $params['gcm_reg_id'];
       $password = $params['password'];
       $notify_app_status = $params['notify_app_status'];
       $send_email_status = $params['send_email_status'];
@@ -28,8 +29,8 @@ class DbHandler {
           // Generating API key
           $api_key = $this->generateApiKey();
           // insert query
-          $stmt = $this->conn->prepare("INSERT INTO app_users (name, email, password_hash, api_key, app_notify_status, send_email_status, edited_at) values(?, ?, ?, ?, ?, ?, date('Y-m-d H:i:s'))");
-          $stmt->bind_param("ssssii", $name, $email, $password_hash, $api_key, $notify_app_status, $send_email_status);
+          $stmt = $this->conn->prepare("INSERT INTO app_users (name, email, password_hash, api_key, app_notify_status, send_email_status, gcm_registration_id, edited_at) values(?, ?, ?, ?, ?, ?, ?, date('Y-m-d H:i:s'))");
+          $stmt->bind_param("ssssiis", $name, $email, $password_hash, $api_key, $notify_app_status, $send_email_status, $gcm_registration_id);
           $result = $stmt->execute();
           $stmt->close();
           // Check for successful insertion
