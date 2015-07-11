@@ -16,7 +16,7 @@ class DbHandler {
 
       $name = $params['name'];
       $email = $params['email'];
-      $gcm_reg_id = $params['gcm_reg_id'];
+      $gcm_registration_id = $params['gcm_registration_id'];
       $password = $params['password'];
       $notify_app_status = $params['notify_app_status'];
       $send_email_status = $params['send_email_status'];
