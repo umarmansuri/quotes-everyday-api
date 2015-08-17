@@ -141,6 +141,18 @@ class DbHandler {
     }
 
     /**
+     * Fetching all user gcm_registration_id
+     */
+    public function getUserGcmRegId() {
+        $stmt = $this->conn->prepare("SELECT gcm_registration_id FROM app_users");
+        // $stmt->bind_param("s", $api_key);
+        $stmt->execute();
+        $user_gcm = $stmt->get_result();
+        $stmt->close();
+        return $user_gcm;
+    }
+
+    /**
      * Validating user api key
      * If the api key is there in db, it is a valid key
      * @param String $api_key user api key
@@ -204,6 +216,15 @@ class DbHandler {
         $quotes = $stmt->get_result();
         $stmt->close();
         return $quotes;
+    }
+
+    public function getQuote(){
+      $stmt = $this->conn->prepare("SELECT q.* FROM quotes q ORDER BY RAND() LIMIT 1");
+      // $stmt->bind_param("i", $user_id);
+      $stmt->execute();
+      $quotes = $stmt->get_result();
+      $stmt->close();
+      return $quotes;
     }
 
     public function editQuote($user_id, $params) {
