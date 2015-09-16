@@ -6,8 +6,10 @@ require '../vendor/autoload.php';
 
 $app = new \Slim\Slim();
 
-if(SLIM_DEBUG){
+if(SLIM_DEBUG && PHP_DEBUG_MODE){
   $app->config('debug',true);
+  error_reporting(E_ALL);
+  ini_set("display_errors", 1);
 }
 
 /**
@@ -24,6 +26,7 @@ $app->get('/test/:name', function ($name) {
 // Register User
 //////////////////////////////////////////
 $app->post('/register-user', function() use ($app) {
+
   // check for required params
   verifyRequiredParams(array('name', 'email', 'gcm_registration_id'));
   $response = array();
@@ -135,7 +138,6 @@ $app->get('/push-quote', function() use ($app){
       array_push($response["users"], $tmp);
   }
 
-  // looping through result and preparing tasks array
   while ($quote = $result->fetch_assoc()) {
       $tmp = array();
       $tmp["quote"] = html_entity_decode($quote["quote"],ENT_QUOTES);
@@ -143,7 +145,8 @@ $app->get('/push-quote', function() use ($app){
       array_push($response["quotes"], $tmp);
   }
 
-  $push_msg = $response['quotes'][0]['quote'];
+  $quote_msg = $response['quotes'][0]['quote'];
+  $author_msg = $response['quotes'][0]['author'];
   $registration_ids = array();
   foreach($response['users'] as $user_gcm){
     array_push($registration_ids, $user_gcm['gcm_id']);
@@ -155,8 +158,8 @@ $app->get('/push-quote', function() use ($app){
   $url = 'https://android.googleapis.com/gcm/send';
 
   $message = array(
-    "Notice" => $push_msg,
-    "notification_id" => "42",
+    "quote" => $quote_msg,
+    "author" => $author_msg
   );
 
   $fields = array(
@@ -264,6 +267,52 @@ $app->delete('/quote/delete/:quote_id', 'authenticate', function($quote_id) use(
         $response["message"] = "Task failed to delete. Please try again!";
     }
     echoResponse(200, $response);
+});
+
+//////////////////////////////////////////////////
+// Get a random protip from Fucking Homepage (C)
+//////////////////////////////////////////////////
+$app->get('/fing-protips', function() use ($app){
+  /* Fucking Homepage (C) scraping start */
+  include_once('../include/simple_html_dom.php');
+	$fh = 'http://fuckinghomepage.com/';
+
+	$source = file_get_html($fh);
+	$source_page = $source->find('span.Numeration',0)->plaintext; // find pages
+
+	$max_page = explode(" ", trim($source_page)); // get total pages
+
+  // check if template is correct
+  if(strpos($max_page[1], "of") !== false) {
+    $rand_page = rand(1, $max_page[2]-81);
+
+    $html = file_get_html($fh.'page/'.$rand_page.'');
+
+    $protip = array(
+      'date' => $html->find('a.Title',0)->plaintext, // get date
+      'protip' => $html->find('div.PostBody',0)->children(2)->plaintext // get protip
+    );
+
+    $result = ucfirst(strtolower($protip['protip']));
+    $date = ucfirst(strtolower($protip['date']));
+
+    $html->clear();
+    unset($html);
+
+    $response["error"] = false;
+    $response["response"] = array();
+
+    $tmp = array();
+    $tmp["protip"] = $result;
+    $tmp["date"] = $date;
+    array_push($response["response"], $tmp);
+  } else {
+    $response["error"] = true;
+    $response["response"] = "(Error) Layout check failed";
+  }
+  /* Fucking Homepage (C) scraping end */
+
+  echoResponse(200, $response);
 });
 
 $app->run();
